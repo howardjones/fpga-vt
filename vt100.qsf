@@ -79,7 +79,6 @@ set_global_assignment -name VHDL_FILE simulation/modelsim/testbench.vhd
 set_global_assignment -name VHDL_FILE vt100.vhd
 set_global_assignment -name VHDL_FILE simulation/modelsim/vga_testbench.vhd
 set_global_assignment -name VHDL_FILE vga_textmode.vhd
-set_global_assignment -name VHDL_FILE "display-ram.vhd"
 set_global_assignment -name QIP_FILE font_rom.qip
 set_global_assignment -name VHDL_FILE simulation/modelsim/vga_gfx_testbench.vhd
 set_global_assignment -name EDA_TEST_BENCH_NAME vga_gfx_testbench -section_id eda_simulation
