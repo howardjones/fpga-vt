@@ -63,7 +63,7 @@ architecture vga_textmode_arch of vga_textmode is
 			address	=> char_address,
 			q => chardata_row
 		);
-
+		
 	pixcounter_inst: entity work.count9
 		port map(
 			clock => pixelClk,
@@ -107,11 +107,11 @@ architecture vga_textmode_arch of vga_textmode is
 			
 			jiffy_counter <= jiffy_counter + 1;
 			
-			if (jiffy_counter mod 36 = 0) then 
+			if (jiffy_counter mod 32 = 0) then 
 				flash_flag <= not flash_flag;
 			end if;
 
-			if (jiffy_counter mod 27 = 0) then 
+			if (jiffy_counter mod 24 = 0) then 
 				cursor_flash_flag <= not cursor_flash_flag;
 			end if;
 			
