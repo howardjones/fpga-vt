@@ -4,8 +4,8 @@ VT100-style terminal implemented on FPGA in VHDL
 This is a project to implement a DEC VT100 style serial terminal entirely in an FPGA (aside from a few supporting components).
 
 * VGA-style 16-colour 80x25 Text Mode display controller with 8x16 fonts on 9x16 grid (first focus of work)
-* T80 soft core Z80 processor
-* 16450 soft core UART
+* T80 soft core Z80 processor (from opencores)
+* 16450 soft core UART (from opencores)
 * PS/2 keyboard interface (I have a nice IBM Model M for the authentic 80s feel)
 * Z80 software for terminal emulation
 
