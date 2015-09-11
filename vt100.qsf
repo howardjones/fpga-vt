@@ -1,0 +1,105 @@
+# -------------------------------------------------------------------------- #
+#
+# Copyright (C) 1991-2013 Altera Corporation
+# Your use of Altera Corporation's design tools, logic functions 
+# and other software and tools, and its AMPP partner logic 
+# functions, and any output files from any of the foregoing 
+# (including device programming or simulation files), and any 
+# associated documentation or information are expressly subject 
+# to the terms and conditions of the Altera Program License 
+# Subscription Agreement, Altera MegaCore Function License 
+# Agreement, or other applicable license agreement, including, 
+# without limitation, that your use is for the sole purpose of 
+# programming logic devices manufactured by Altera and sold by 
+# Altera or its authorized distributors.  Please refer to the 
+# applicable agreement for further details.
+#
+# -------------------------------------------------------------------------- #
+#
+# Quartus II 64-Bit
+# Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
+# Date created = 22:17:10  August 05, 2015
+#
+# -------------------------------------------------------------------------- #
+#
+# Notes:
+#
+# 1) The default values for assignments are stored in the file:
+#		vt100_assignment_defaults.qdf
+#    If this file doesn't exist, see file:
+#		assignment_defaults.qdf
+#
+# 2) Altera recommends that you do not modify this file. This
+#    file is updated automatically by the Quartus II software
+#    and any changes you make may be lost or overwritten.
+#
+# -------------------------------------------------------------------------- #
+
+
+set_global_assignment -name FAMILY "Cyclone II"
+set_global_assignment -name DEVICE EP2C8Q208C8
+set_global_assignment -name TOP_LEVEL_ENTITY vt100
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION "13.0 SP1"
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "22:17:10  AUGUST 05, 2015"
+set_global_assignment -name LAST_QUARTUS_VERSION "13.0 SP1"
+set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
+set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
+set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
+set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
+set_location_assignment PIN_161 -to vSync
+set_location_assignment PIN_152 -to hSync
+set_location_assignment PIN_151 -to videoR[1]
+set_location_assignment PIN_150 -to videoG[1]
+set_location_assignment PIN_149 -to videoB[1]
+
+set_location_assignment PIN_23 -to clk
+set_global_assignment -name EDA_SIMULATION_TOOL "ModelSim-Altera (VHDL)"
+set_global_assignment -name EDA_OUTPUT_DATA_FORMAT VHDL -section_id eda_simulation
+set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
+set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST ON -section_id eda_simulation
+set_global_assignment -name EDA_TEST_BENCH_ENABLE_STATUS TEST_BENCH_MODE -section_id eda_simulation
+set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH vga_gfx_testbench -section_id eda_simulation
+set_global_assignment -name EDA_TEST_BENCH_NAME testbench -section_id eda_simulation
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME testbench -section_id testbench
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME testbench -section_id testbench
+set_global_assignment -name EDA_TEST_BENCH_NAME vga_testbench -section_id eda_simulation
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME DUT -section_id vga_testbench
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME vga_testbench -section_id vga_testbench
+set_global_assignment -name USE_CONFIGURATION_DEVICE ON
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to n_reset
+set_global_assignment -name HEX_FILE "VGA-ROM-8x16.hex"
+set_global_assignment -name VHDL_FILE "vga-controller.vhd"
+set_global_assignment -name VHDL_FILE "colour-rom.vhd"
+set_global_assignment -name VHDL_FILE simulation/modelsim/testbench.vhd
+set_global_assignment -name VHDL_FILE vt100.vhd
+set_global_assignment -name VHDL_FILE simulation/modelsim/vga_testbench.vhd
+set_global_assignment -name VHDL_FILE vga_textmode.vhd
+set_global_assignment -name VHDL_FILE "display-ram.vhd"
+set_global_assignment -name QIP_FILE font_rom.qip
+set_global_assignment -name VHDL_FILE simulation/modelsim/vga_gfx_testbench.vhd
+set_global_assignment -name EDA_TEST_BENCH_NAME vga_gfx_testbench -section_id eda_simulation
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME vga_gfx_testbench -section_id vga_gfx_testbench
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME vga_gfx_testbench -section_id vga_gfx_testbench
+set_global_assignment -name EDA_TEST_BENCH_FILE simulation/modelsim/testbench.vhd -section_id testbench
+set_global_assignment -name EDA_TEST_BENCH_FILE simulation/modelsim/vga_testbench.vhd -section_id vga_testbench
+set_global_assignment -name EDA_TEST_BENCH_FILE simulation/modelsim/vga_gfx_testbench.vhd -section_id vga_gfx_testbench
+set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008
+set_global_assignment -name VHDL_SHOW_LMF_MAPPING_MESSAGES OFF
+set_global_assignment -name VHDL_FILE "vga-small.vhd"
+set_location_assignment PIN_113 -to videoR[0]
+set_location_assignment PIN_114 -to videoG[0]
+set_location_assignment PIN_115 -to videoB[0]
+set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT FAST
+set_global_assignment -name OPTIMIZE_HOLD_TIMING "IO PATHS AND MINIMUM TPD PATHS"
+set_global_assignment -name OPTIMIZE_MULTI_CORNER_TIMING ON
+set_global_assignment -name WEAK_PULL_UP_RESISTOR OFF
+set_global_assignment -name TIMEQUEST_MULTICORNER_ANALYSIS ON
+set_global_assignment -name SMART_RECOMPILE ON
+set_global_assignment -name ENABLE_SIGNALTAP OFF
+set_global_assignment -name FLOW_ENABLE_RTL_VIEWER ON
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
