@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use  IEEE.STD_LOGIC_UNSIGNED.all;
+-- use  IEEE.STD_LOGIC_UNSIGNED.all;
 use IEEE.NUMERIC_STD.all;
 
 entity count9 is
@@ -24,7 +24,7 @@ begin
             tmp <= (others => '0');  -- equivalent to "0000"
 				wrap <= '1';
          else
-            tmp <= tmp + 1;
+            tmp <= std_logic_vector(unsigned(tmp) + 1);
 				wrap <= '0';
          end if;
 		end if;
@@ -40,7 +40,48 @@ end Behavioral;
 
 library ieee;
 use ieee.std_logic_1164.all;
-use  IEEE.STD_LOGIC_UNSIGNED.all;
+-- use  IEEE.STD_LOGIC_UNSIGNED.all;
+use IEEE.NUMERIC_STD.all;
+
+
+entity count80 is
+    Port (
+		q : out std_logic_vector(6 downto 0);
+		wrap: out std_logic;
+      clear: in std_logic;
+      clock : in std_logic);
+end count80;
+
+architecture Behav of count80 is
+  signal tmp: std_logic_vector(6 downto 0) := "0000000"; 
+begin
+  process(clock, clear) 
+  begin
+    if (rising_edge(clock)) then
+		if (clear='1') then
+			tmp <= (others => '0');
+		else
+			if tmp = "1010000" then         -- binary 80
+            tmp <= (others => '0');  -- equivalent to "0000000"
+				wrap <= '1';
+         else
+            tmp <= std_logic_vector(unsigned(tmp) + 1);
+				wrap <= '0';
+         end if;
+		end if;
+	 end if;
+	 	 
+ end process;  
+
+ q <= tmp;
+
+end Behav;
+
+---------------------------------------------------------------------------------------
+
+library ieee;
+use ieee.std_logic_1164.all;
+-- use  IEEE.STD_LOGIC_UNSIGNED.all;
 use IEEE.NUMERIC_STD.all;
 
 entity shiftreg is
@@ -52,7 +93,7 @@ entity shiftreg is
 end shiftreg;
 
 architecture Behavioral of shiftreg is
-	signal latch : std_logic_vector(8 downto 0);
+	signal latch : std_logic_vector(8 downto 0) := "001100110";
 	signal tmp_out : std_logic;
 begin
 
@@ -62,13 +103,12 @@ begin
 			if(load = '1') then
 				latch <= input;
 			else
-				latch(8 downto 0) <= latch(7 downto 0) & latch(8);	
+				latch(8 downto 0) <= latch(7 downto 0) & '0';	
 			end if;
-		end if;
-			
+		end if;			
 		
 	end process;
 		
-	q <= latch(0);
+	q <= latch(8);
 	
 end Behavioral;

@@ -98,8 +98,10 @@ set_global_assignment -name OPTIMIZE_HOLD_TIMING "IO PATHS AND MINIMUM TPD PATHS
 set_global_assignment -name OPTIMIZE_MULTI_CORNER_TIMING ON
 set_global_assignment -name WEAK_PULL_UP_RESISTOR OFF
 set_global_assignment -name TIMEQUEST_MULTICORNER_ANALYSIS ON
-set_global_assignment -name SMART_RECOMPILE ON
+set_global_assignment -name SMART_RECOMPILE OFF
 set_global_assignment -name ENABLE_SIGNALTAP OFF
 set_global_assignment -name FLOW_ENABLE_RTL_VIEWER ON
 set_global_assignment -name QIP_FILE displayram.qip
+set_location_assignment PIN_30 -to junkBuzzer
+set_global_assignment -name FLOW_ENABLE_IO_ASSIGNMENT_ANALYSIS ON
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

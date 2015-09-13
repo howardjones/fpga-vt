@@ -19,6 +19,9 @@ ARCHITECTURE testbench_arch OF vga_gfx_testbench IS
   
   SIGNAL enable : std_LOGIC;
   
+  SIGNAL row_start : std_logic;
+  SIGNAL frame_start : std_logic;
+  
 	SIGNAL videoR		:  std_logic_vector(1 downto 0);
 	SIGNAL videoG		:  std_logic_vector(1 downto 0);
 	SIGNAL videoB		:  std_logic_vector(1 downto 0);	
@@ -31,6 +34,8 @@ ARCHITECTURE testbench_arch OF vga_gfx_testbench IS
 		disp_enable : out std_logic;
 		column		: out unsigned(9 downto 0);
 		row			: out unsigned(9 downto 0);
+		frame_start : out std_logic := '0';
+		row_start   : out std_logic := '0';
       vSync  : out STD_LOGIC ); 
   END COMPONENT ; 
   
@@ -41,6 +46,8 @@ ARCHITECTURE testbench_arch OF vga_gfx_testbench IS
       hSync   => hSync  ,
       pixelClk   => clk  ,
 		disp_enable => enable,
+		row_start => row_start,
+		frame_start => frame_start,
 		row => row,
 		column => col,
       vSync   => vSync   ) ; 
@@ -49,10 +56,11 @@ ARCHITECTURE testbench_arch OF vga_gfx_testbench IS
 		port map(
 			n_reset => n_reset,
 			pixelClk => clk,
-			row => row,
-			column => col,
+			row => std_logic_vector(row),
+			column => std_logic_vector(col),
 			disp_enable => enable,
-			frame_start => '0',
+			row_start => row_start,
+			frame_start => frame_start,
 			videoR => videoR,
 			videoG => videoG,
 			videoB => videoB

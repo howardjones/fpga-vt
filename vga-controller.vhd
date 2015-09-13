@@ -1,7 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 -- use  IEEE.STD_LOGIC_ARITH.all;
-use  IEEE.STD_LOGIC_UNSIGNED.all;
+-- use  IEEE.STD_LOGIC_UNSIGNED.all;
 use IEEE.NUMERIC_STD.all;
 
 entity vga_controller is
@@ -27,6 +27,8 @@ entity vga_controller is
 		row			: out unsigned(9 downto 0);
 		
 		frame_start : out std_logic := '0';
+		row_start   : out std_logic := '0';
+
 		hSync			: out std_logic;
 		vSync			: out std_logic
 	);
@@ -92,10 +94,17 @@ begin
 			
 			if(h_count < h_pixels and v_count < v_pixels) then
 				disp_enable <= '1';
-				if (h_count = 0) then
+				
+				if (h_count = 0 and v_count = 0) then
 					frame_start <= '1';
 				else
 					frame_start <= '0';
+				end if;
+				
+				if (h_count = 0) then
+					row_start <= '1';
+				else
+					row_start <= '0';
 				end if;
 			else
 				disp_enable <= '0';
