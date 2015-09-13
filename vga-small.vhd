@@ -126,6 +126,7 @@ entity attr_selector is
 		outR : out std_logic_vector(1 downto 0);
 		outG : out std_logic_vector(1 downto 0);
 		outB : out std_logic_vector(1 downto 0);
+		disp_enable : in std_logic;
 		load: in std_logic;
 		fg : in std_logic_vector(5 downto 0);
       bg : in std_logic_vector(5 downto 0);
@@ -148,6 +149,10 @@ begin
 			if(load = '1') then
 				fg_latch <= fg;
 				bg_latch <= bg;
+			end if;
+			
+			if (disp_enable = '0') then
+					result <= "000000";
 			else
 				if (input='0' or (flash and flashing) = '1') then
 					result <= bg_latch;
@@ -155,6 +160,7 @@ begin
 					result <= fg_latch;
 				end if;
 			end if;
+			
 		end if;			
 		
 	end process;	

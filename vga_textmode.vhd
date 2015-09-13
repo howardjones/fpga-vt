@@ -67,6 +67,8 @@ architecture vga_textmode_arch of vga_textmode is
 	signal selector_bg_in : std_logic_vector(5 downto 0);
 	signal selector_fg_in : std_logic_vector(5 downto 0);
 	
+	signal display_mem_addr_tmp : std_logic_vector(15 downto 0);
+	
 	begin
 
 	font_rom_inst: entity work.font_rom
@@ -108,6 +110,10 @@ architecture vga_textmode_arch of vga_textmode is
 			clock => pixelClk,
 			flash => flash_flag,
 			load => shift_load,
+			disp_enable => disp_enable,
+			outR => videoR,
+			outG => videoG,
+			outB => videoB,
 			input => pixel
 		);
 	
@@ -130,17 +136,19 @@ architecture vga_textmode_arch of vga_textmode is
 --	chr <= "01" & ch_col(5 downto 0);
 	chr <= display_mem_data(7 downto 0);
 	
-	next_attr_fg <= display_mem_data(3 downto 0);
-	next_attr_bg <= '0' & display_mem_data(6 downto 4);
-	next_attr_flash <= display_mem_data(7);
+	next_attr_fg <= display_mem_data(11 downto 8);
+	next_attr_bg <= '0' & display_mem_data(14 downto 12);
+	next_attr_flash <= display_mem_data(15);
 	
 	-- fetch the relevant row of font data
 	char_address <= chr & glyph_row;
 	-- ch_clock <= pix_counter(2); -- clocks every 4 pixels, sort of...
 	pix_clear <= frame_start or row_start;
 
-	display_mem_addr <= ch_row(4 downto 0) & ch_col(5 downto 0);	
-	
+	-- display_mem_addr <= ch_row(4 downto 0) & ch_col(5 downto 0);	
+	display_mem_addr_tmp <=  std_logic_vector(unsigned(ch_row) * 80 + unsigned(ch_col));
+	display_mem_addr <= display_mem_addr_tmp(10 downto 0);
+		
 	-- set up the row signals at the start of each row
 	process (row_start)
 	begin
@@ -186,18 +194,18 @@ architecture vga_textmode_arch of vga_textmode is
 		if(rising_edge(pixelClk)) then
 			 if (disp_enable = '1') then
 				-- videoR(1 downto 0) <= ch_col(0) & ch_col(0);	
-				videoR(1 downto 0) <= pixel & pixel;
-				videoG(1 downto 0) <= pixel & pixel;
-				videoB(1 downto 0) <= pixel & pixel;
+				-- videoR(1 downto 0) <= pixel & pixel;
+				-- videoG(1 downto 0) <= pixel & pixel;
+				-- videoB(1 downto 0) <= pixel & pixel;
 				--if (flash_flag='0') then
 				--	videoB(1 downto 0) <= ch_row(0) & ch_row(0);
 				--else
 				--	videoB(1 downto 0) <= "00";
 				--end if;
 			else 
-				videoR <= "00";
-				videoG <= "00";
-				videoB <= "00";
+			--	videoR <= "00";
+			--	videoG <= "00";
+			--	videoB <= "00";
 			end if;
 		end if;
 		
