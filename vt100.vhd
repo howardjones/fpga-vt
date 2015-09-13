@@ -63,6 +63,8 @@ begin
 			disp_enable => display_enable,
 			frame_start => frame_start,
 			row_start => row_start,
+			display_mem_addr => dispram_addr_b,
+			display_mem_data => dispram_output_b,
 			videoR => videoR,
 			videoG => videoG,
 			videoB => videoB

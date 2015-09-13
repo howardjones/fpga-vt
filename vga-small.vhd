@@ -112,3 +112,55 @@ begin
 	q <= latch(8);
 	
 end Behavioral;
+
+---------------------------------------------------------------------------------------
+
+library ieee;
+use ieee.std_logic_1164.all;
+-- use  IEEE.STD_LOGIC_UNSIGNED.all;
+use IEEE.NUMERIC_STD.all;
+
+entity attr_selector is
+    Port (
+		input : in std_logic;
+		outR : out std_logic_vector(1 downto 0);
+		outG : out std_logic_vector(1 downto 0);
+		outB : out std_logic_vector(1 downto 0);
+		load: in std_logic;
+		fg : in std_logic_vector(5 downto 0);
+      bg : in std_logic_vector(5 downto 0);
+		flashing : in std_logic;
+		flash : in std_logic;
+		clock : in std_logic
+		);
+end attr_selector;
+
+
+architecture Behavioral of attr_selector is
+	signal fg_latch : std_logic_vector(5 downto 0);
+	signal bg_latch : std_logic_vector(5 downto 0);
+	signal result : std_logic_vector(5 downto 0);
+begin
+
+	process (clock, input, load)
+	begin
+		if (rising_edge(clock)) then
+			if(load = '1') then
+				fg_latch <= fg;
+				bg_latch <= bg;
+			else
+				if (input='0' or (flash and flashing) = '1') then
+					result <= bg_latch;
+				else
+					result <= fg_latch;
+				end if;
+			end if;
+		end if;			
+		
+	end process;	
+	
+	outR <= result(5 downto 4);
+	outG <= result(3 downto 2);
+	outB <= result(1 downto 0);
+	
+end Behavioral;

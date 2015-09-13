@@ -15,6 +15,9 @@ entity vga_textmode is
 		frame_start : in std_logic;
 		row_start : in std_logic;
 		
+		display_mem_addr : out std_logic_vector(10 downto 0);
+		display_mem_data : in std_logic_vector(15 downto 0);
+		
 		videoR		: out std_logic_vector(1 downto 0);
 		videoG		: out std_logic_vector(1 downto 0);
 		videoB		: out std_logic_vector(1 downto 0)	
@@ -30,21 +33,21 @@ architecture vga_textmode_arch of vga_textmode is
 	signal ch_clock : std_logic := '0';
 	signal char_address : std_logic_vector(11 downto 0) := "000000000000";
 	signal chardata_row : std_logic_vector(7 downto 0) := "00110011";
-	
-	
+		
 	-- signal shifter : std_logic_vector(8 downto 0) := "001010101";
 	signal shift_load : std_logic := '0';
 	
 	signal flash_flag : std_logic := '0';
 	signal cursor_flash_flag : std_logic := '0';
-	signal jiffy_counter : integer := 0;
-	
+	signal jiffy_counter : integer := 0;	
 	
 	signal chr : std_logic_vector(7 downto 0) := X"00";
 	
 	signal pix_counter : std_logic_vector(3 downto 0) := "0000";
 	signal pix_clear : std_logic := '0';
 	signal pix_wrap : std_logic := '0';
+	
+	signal line_wrap : std_logic := '0';
 	
 	signal displayClock : std_logic;
 	
@@ -56,6 +59,13 @@ architecture vga_textmode_arch of vga_textmode is
 	signal attr_fg : std_logic_vector(3 downto 0) := "1111";
 	signal attr_bg : std_logic_vector(3 downto 0) := "0000"; -- high bit will always be 0 (only 3 stored in display attr byte)
 	signal attr_flash : std_logic := '0';
+
+	signal next_attr_fg : std_logic_vector(3 downto 0) := "1111";
+	signal next_attr_bg : std_logic_vector(3 downto 0) := "0000"; -- high bit will always be 0 (only 3 stored in display attr byte)
+	signal next_attr_flash : std_logic := '0';
+
+	signal selector_bg_in : std_logic_vector(5 downto 0);
+	signal selector_fg_in : std_logic_vector(5 downto 0);
 	
 	begin
 
@@ -78,7 +88,8 @@ architecture vga_textmode_arch of vga_textmode is
 		port map(
 			clock => pix_wrap or row_start,
 			clear	=> pix_clear,
-			q => ch_col
+			q => ch_col,
+			wrap => line_wrap
 		);
 		
 	shifter_inst: entity work.shiftreg
@@ -89,17 +100,47 @@ architecture vga_textmode_arch of vga_textmode is
 			q => pixel
 		);
 	
+	palette_selector_inst : entity work.attr_selector
+		port map(
+			fg => selector_fg_in,
+			bg => selector_bg_in,
+			flashing => next_attr_flash,
+			clock => pixelClk,
+			flash => flash_flag,
+			load => shift_load,
+			input => pixel
+		);
+	
+	fg_palette_inst: entity work.COLOUR_ROM
+		port map(
+			A => next_attr_fg,
+			D => selector_fg_in
+		);
+	
+	
+	bg_palette_inst: entity work.COLOUR_ROM
+		port map(
+			A => next_attr_bg,
+			D => selector_bg_in
+		);
+	
 	displayClock <= pixelClk and disp_enable;
 	
 	-- will be fetched from display RAM, but calculate from character column for now
-	chr <= "01" & ch_col(5 downto 0);
-	-- chr <= "01000001";
+--	chr <= "01" & ch_col(5 downto 0);
+	chr <= display_mem_data(7 downto 0);
+	
+	next_attr_fg <= display_mem_data(3 downto 0);
+	next_attr_bg <= '0' & display_mem_data(6 downto 4);
+	next_attr_flash <= display_mem_data(7);
 	
 	-- fetch the relevant row of font data
 	char_address <= chr & glyph_row;
 	-- ch_clock <= pix_counter(2); -- clocks every 4 pixels, sort of...
 	pix_clear <= frame_start or row_start;
 
+	display_mem_addr <= ch_row(4 downto 0) & ch_col(5 downto 0);	
+	
 	-- set up the row signals at the start of each row
 	process (row_start)
 	begin
@@ -144,13 +185,15 @@ architecture vga_textmode_arch of vga_textmode is
 		
 		if(rising_edge(pixelClk)) then
 			 if (disp_enable = '1') then
-				videoR(1 downto 0) <= ch_col(0) & ch_col(0);	
+				-- videoR(1 downto 0) <= ch_col(0) & ch_col(0);	
+				videoR(1 downto 0) <= pixel & pixel;
 				videoG(1 downto 0) <= pixel & pixel;
-				if (flash_flag='0') then
-					videoB(1 downto 0) <= ch_row(0) & ch_row(0);
-				else
-					videoB(1 downto 0) <= "00";
-				end if;
+				videoB(1 downto 0) <= pixel & pixel;
+				--if (flash_flag='0') then
+				--	videoB(1 downto 0) <= ch_row(0) & ch_row(0);
+				--else
+				--	videoB(1 downto 0) <= "00";
+				--end if;
 			else 
 				videoR <= "00";
 				videoG <= "00";
