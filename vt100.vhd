@@ -6,7 +6,7 @@ use IEEE.NUMERIC_STD.all;
 
 entity vt100 is
      port(
-		n_reset		: in std_logic;
+		Reset_n		: in std_logic;
 		clk			: in std_logic;
 		
 		junkBuzzer : out std_logic;
@@ -19,8 +19,26 @@ entity vt100 is
 		videoG		: out std_logic_vector(1 downto 0);
 		videoB		: out std_logic_vector(1 downto 0);	
 		hSync			: out std_logic;
-		vSync			: out std_logic
+		vSync			: out std_logic;
 
+		blinkenlight0 : out std_logic;
+		blinkenlight1 : out std_logic;
+		blinkenlight2 : out std_logic;
+		blinkenlight3 : out std_logic;
+		blinkenlight4 : out std_logic;
+		blinkenlight5 : out std_logic;
+		
+		NMI_n		: in std_logic;
+		
+		RXD0		: in std_logic;
+		CTS0		: in std_logic;
+		DSR0		: in std_logic;
+		RI0		: in std_logic;
+		DCD0		: in std_logic;
+		TXD0		: out std_logic;
+		RTS0		: out std_logic;
+		DTR0		: out std_logic
+		
 	--	ps2Clk		: inout std_logic;
 	--	ps2Data		: inout std_logic;
 	);
@@ -37,13 +55,111 @@ architecture struct of vt100 is
 	
 	signal dispram_addr_b : std_logic_vector(10 downto 0) := "00000000000";
 	signal dispram_output_b : std_logic_vector(15 downto 0);
+	
+	signal serialClkCount			: unsigned(15 downto 0);
+	signal cpuClkCount				: unsigned(7 downto 0); 
+	signal cpuClock					: std_logic;
+	signal serialClock				: std_logic;
+	
+	signal M1_n			: std_logic;
+	signal MREQ_n		: std_logic;
+	signal IORQ_n		: std_logic;
+	signal RD_n			: std_logic;
+	signal WR_n			: std_logic;
+	signal RFSH_n		: std_logic;
+	signal HALT_n		: std_logic;
+	signal WAIT_n		: std_logic;
+	signal INT_n		: std_logic;
+	signal RESET_s		: std_logic;
+	signal BUSRQ_n		: std_logic;
+	signal BUSAK_n		: std_logic;
+	signal A			: std_logic_vector(15 downto 0);
+	signal D			: std_logic_vector(7 downto 0);
+	signal ROM_D		: std_logic_vector(7 downto 0);
+	signal SRAM_D		: std_logic_vector(7 downto 0);
+	signal UART0_D		: std_logic_vector(7 downto 0);
+	signal UART1_D		: std_logic_vector(7 downto 0);
+	signal CPU_D		: std_logic_vector(7 downto 0);
+
+	signal DISPRAM_D		: std_logic_vector(7 downto 0);
+
+	
+	signal Mirror		: std_logic;
+
+	signal IOWR_n		: std_logic;
+	signal RAMCS_n		: std_logic;
+	signal DISPRAMCS_n : std_logic;
+
+	signal UART0CS_n	: std_logic;
+	signal UART1CS_n	: std_logic;
+	signal BLINKCS_n : std_logic;
+
+	signal BaudOut0		: std_logic;
+	signal BaudOut1		: std_logic;
+	
 begin
 
 	pixelClk <= clk;
 	
+	
+	Wait_n <= '1';
+	BusRq_n <= '1';
+	INT_n <= '1';
+
+	process (Reset_n, cpuClock)
+	begin
+		if Reset_n = '0' then
+			Reset_s <= '0';
+			--Mirror <= '0';
+		elsif Clk'event and Clk = '1' then
+			Reset_s <= '1';
+			--if IORQ_n = '0' and A(7 downto 4) = "1111" then
+			--	Mirror <= D(0);
+			--end if;
+		end if;
+	end process;
+	
+	process (Clk)
+	begin
+		if(rising_edge(Clk)) then
+			if cpuClkCount < 200 then
+				cpuClkCount <= cpuClkCount + 1;
+			else
+				cpuClkCount <= (others => '0');
+			end if;
+			
+			if cpuClkCount < 100 then
+				cpuClock <= '1';			
+			else
+				cpuClock <= '0';
+			end if;
+			
+		end if;
+	end process;
+
+	-- Memory decoding
+	IOWR_n <= WR_n or IORQ_n;
+	-- RAMCS_n <= (not Mirror and not A(15)) or MREQ_n;
+	RAMCS_n <= (not Mirror and not A(15)) or MREQ_n;
+	-- DISPRAMCS_n <= MREQ_n and 
+
+	-- I/O Decoding
+	BLINKCS_n <= '0' when IORQ_n = '0' and A(7 downto 0) = "11111111" else '1';
+	UART0CS_n <= '0' when IORQ_n = '0' and A(7 downto 3) = "00000" else '1';	
+	UART1CS_n <= '0' when IORQ_n = '0' and A(7 downto 3) = "00001" else '1';
+
+	-- data bus selection
+	CPU_D <=
+		SRAM_D when RAMCS_n = '0' else
+		SRAM_D when RAMCS_n = '0' else
+		UART0_D when UART0CS_n = '0' else
+		UART1_D when UART1CS_n = '0' else
+		ROM_D;
+	
+	
 	vgactrl1: entity work.vga_controller
 		port map(
-			n_reset => n_reset,
+			n_reset => Reset_n,
 			pixelClk => pixelClk,
 			hSync => hSync,
 			vSync => vSync,
@@ -56,7 +172,7 @@ begin
 		
 	vgagfx1: entity work.vga_textmode
 		port map(
-			n_reset => n_reset,
+			n_reset => Reset_n,
 			pixelClk => pixelClk,
 			row => std_logic_vector(row),
 			column => std_logic_vector(col),
@@ -72,17 +188,91 @@ begin
 		
 	displaymem: entity work.displayram
 		port map (
+			-- clock_a => cpuClock,
+			-- address_a => A(11 downto 0),
 			clock_a => pixelClk,
 			address_a => "000000000000",
-			--q_a => "00000000",
-			data_a => "00000000",
+			q_a => DISPRAM_D,
+			data_a => D,
+			enable_a => not DISPRAMCS_n,
+			wren_a => not WR_n,
 			
 			clock_b => pixelClk,
 			address_b => dispram_addr_b,
 			q_b => dispram_output_b,
 			data_b => "0000000000000000"
 		);
+		
+		cpu0 : entity work.T80s
+			generic map(Mode => 1, T2Write => 1, IOWait => 0)
+			port map(
+				RESET_n => RESET_s,
+				CLK_n => cpuClock,
+				WAIT_n => WAIT_n,
+				INT_n => INT_n,
+				NMI_n => NMI_n,
+				BUSRQ_n => BUSRQ_n,
+				M1_n => M1_n,
+				MREQ_n => MREQ_n,
+				IORQ_n => IORQ_n,
+				RD_n => RD_n,
+				WR_n => WR_n,
+				RFSH_n => RFSH_n,
+				HALT_n => HALT_n,
+				BUSAK_n => BUSAK_n,
+				A => A,
+				DI => CPU_D,
+				DO => D);
+		
+		uart0 : entity work.T16450
+			port map(
+				MR_n => Reset_s,
+				XIn => Clk,
+				RClk => BaudOut0,
+				CS_n => UART0CS_n,
+				Rd_n => RD_n, 
+				Wr_n => IOWR_n,
+				A => A(2 downto 0),
+				D_In => D,
+				D_Out => UART0_D,
+				SIn => RXD0,
+				CTS_n => CTS0,
+				DSR_n => DSR0,
+				RI_n => RI0,
+				DCD_n => DCD0,
+				SOut => TXD0,
+				RTS_n => RTS0,
+				DTR_n => DTR0,
+				OUT1_n => open,
+				OUT2_n => open,
+				BaudOut => BaudOut0,
+				Intr => open);
+
+			rom0: entity work.bootrom
+				port map (
+					address => A(11 downto 0),
+					clock => cpuClock,
+					q => ROM_D
+				);
+				
+			sram0: entity work.sram
+				port map (
+					-- missing RAMCS_n
+					-- clken => not RAMCS_n,
+					address => A(9 downto 0),
+					clock => cpuClock,
+					data => D,
+					q => SRAM_D,
+					wren => not WR_n
+				);
 	
 	junkBuzzer <= '0';
-	
+
+	blinkenlight0 <= not A(11);	
+	blinkenlight1 <= not A(10);
+	blinkenlight2 <= not A(9);
+	blinkenlight3 <= HalT_n;
+	blinkenlight4 <= '1';
+	blinkenlight5 <= not frame_start;
+		
 end; 
