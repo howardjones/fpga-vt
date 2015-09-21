@@ -15,8 +15,8 @@ entity vga_textmode is
 		frame_start : in std_logic;
 		row_start : in std_logic;
 		
-		display_mem_addr : out std_logic_vector(10 downto 0);
-		display_mem_data : in std_logic_vector(15 downto 0);
+		display_mem_addr : out std_logic_vector(11 downto 0);
+		display_mem_data : in std_logic_vector(7 downto 0);
 		
 		videoR		: out std_logic_vector(1 downto 0);
 		videoG		: out std_logic_vector(1 downto 0);
@@ -69,6 +69,11 @@ architecture vga_textmode_arch of vga_textmode is
 	
 	signal display_mem_addr_tmp : std_logic_vector(15 downto 0);
 	
+	signal dispram_attrbyte : std_logic_vector(7 downto 0);
+	signal dispram_codepoint : std_logic_vector(7 downto 0);
+	
+	signal character_extend : std_logic;
+	
 	begin
 
 	font_rom_inst: entity work.font_rom
@@ -98,7 +103,7 @@ architecture vga_textmode_arch of vga_textmode is
 		port map(
 			clock => pixelClk,
 			load	=> shift_load,
-			input => '0' & chardata_row,
+			input => chardata_row & (character_extend and chardata_row(0)),
 			q => pixel
 		);
 	
@@ -108,7 +113,7 @@ architecture vga_textmode_arch of vga_textmode is
 			bg => selector_bg_in,
 			flashing => next_attr_flash,
 			clock => pixelClk,
-			flash => flash_flag,
+			flashclk => flash_flag,
 			load => shift_load,
 			disp_enable => disp_enable,
 			outR => videoR,
@@ -132,13 +137,17 @@ architecture vga_textmode_arch of vga_textmode is
 	
 	displayClock <= pixelClk and disp_enable;
 	
-	-- will be fetched from display RAM, but calculate from character column for now
---	chr <= "01" & ch_col(5 downto 0);
-	chr <= display_mem_data(7 downto 0);
+	chr <= dispram_codepoint(7 downto 0);
 	
-	next_attr_fg <= display_mem_data(11 downto 8);
-	next_attr_bg <= '0' & display_mem_data(14 downto 12);
-	next_attr_flash <= display_mem_data(15);
+	-- decide whether column 9 is blank, or extended from column 8
+	character_extend <= '1' when chr(7 downto 4) = "1011" else
+							  '1' when chr(7 downto 4) = "1101" else
+							  '1' when chr(7 downto 4) = "1100" else
+							  '0';
+	
+	next_attr_fg <= dispram_attrbyte(3 downto 0);
+	next_attr_bg <= '0' & dispram_attrbyte(6 downto 4);
+	next_attr_flash <= dispram_attrbyte(7);
 	
 	-- fetch the relevant row of font data
 	char_address <= chr & glyph_row;
@@ -147,7 +156,6 @@ architecture vga_textmode_arch of vga_textmode is
 
 	-- display_mem_addr <= ch_row(4 downto 0) & ch_col(5 downto 0);	
 	display_mem_addr_tmp <=  std_logic_vector(unsigned(ch_row) * 80 + unsigned(ch_col));
-	display_mem_addr <= display_mem_addr_tmp(10 downto 0);
 		
 	-- set up the row signals at the start of each row
 	process (row_start)
@@ -159,13 +167,30 @@ architecture vga_textmode_arch of vga_textmode is
 	end process;
 	
 	-- load the shifter at the start of the new character
-	process (pix_counter, pixelClk, row, column)
+	process (pix_counter, pixelClk)
 	begin
-		
 		if (pix_counter = "0000") then
 			shift_load <= '1';
 		else
 			shift_load <= '0';
+		end if;
+		
+		-- fetch the character
+		if (pix_counter = "0001") then
+			display_mem_addr <= display_mem_addr_tmp(10 downto 0) & '0';
+		end if;
+	
+		if (pix_counter = "0010") then
+			dispram_codepoint <= display_mem_data;
+		end if;
+
+		-- fetch the attributes	
+		if (pix_counter = "0011") then
+				display_mem_addr <= display_mem_addr_tmp(10 downto 0) & '1';
+		end if;
+
+		if (pix_counter = "0100") then
+			dispram_attrbyte <= display_mem_data;
 		end if;
 		
 	end process;
@@ -185,38 +210,6 @@ architecture vga_textmode_arch of vga_textmode is
 			end if;
 			
 		end if;
-	end process;
-	
-
-	process (pixelClk)
-	begin
-		
-		if(rising_edge(pixelClk)) then
-			 if (disp_enable = '1') then
-				-- videoR(1 downto 0) <= ch_col(0) & ch_col(0);	
-				-- videoR(1 downto 0) <= pixel & pixel;
-				-- videoG(1 downto 0) <= pixel & pixel;
-				-- videoB(1 downto 0) <= pixel & pixel;
-				--if (flash_flag='0') then
-				--	videoB(1 downto 0) <= ch_row(0) & ch_row(0);
-				--else
-				--	videoB(1 downto 0) <= "00";
-				--end if;
-			else 
-			--	videoR <= "00";
-			--	videoG <= "00";
-			--	videoB <= "00";
-			end if;
-		end if;
-		
-	end process;
-	
-	--process(row, column)
-	--begin
-		
-	--end process;
-		
-	-- v_col <= std_logic_vector(column);
-	-- v_row <= std_logic_vector(row);	 	
+	end process;	
 
 end vga_textmode_arch;

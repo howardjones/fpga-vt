@@ -43,15 +43,17 @@ ENTITY displayram IS
 	PORT
 	(
 		address_a		: IN STD_LOGIC_VECTOR (11 DOWNTO 0);
-		address_b		: IN STD_LOGIC_VECTOR (10 DOWNTO 0);
+		address_b		: IN STD_LOGIC_VECTOR (11 DOWNTO 0);
 		clock_a		: IN STD_LOGIC  := '1';
 		clock_b		: IN STD_LOGIC ;
 		data_a		: IN STD_LOGIC_VECTOR (7 DOWNTO 0);
-		data_b		: IN STD_LOGIC_VECTOR (15 DOWNTO 0);
+		data_b		: IN STD_LOGIC_VECTOR (7 DOWNTO 0);
+		enable_a		: IN STD_LOGIC  := '1';
+		enable_b		: IN STD_LOGIC  := '1';
 		wren_a		: IN STD_LOGIC  := '0';
 		wren_b		: IN STD_LOGIC  := '0';
 		q_a		: OUT STD_LOGIC_VECTOR (7 DOWNTO 0);
-		q_b		: OUT STD_LOGIC_VECTOR (15 DOWNTO 0)
+		q_b		: OUT STD_LOGIC_VECTOR (7 DOWNTO 0)
 	);
 END displayram;
 
@@ -59,7 +61,7 @@ END displayram;
 ARCHITECTURE SYN OF displayram IS
 
 	SIGNAL sub_wire0	: STD_LOGIC_VECTOR (7 DOWNTO 0);
-	SIGNAL sub_wire1	: STD_LOGIC_VECTOR (15 DOWNTO 0);
+	SIGNAL sub_wire1	: STD_LOGIC_VECTOR (7 DOWNTO 0);
 
 
 
@@ -93,36 +95,38 @@ ARCHITECTURE SYN OF displayram IS
 	);
 	PORT (
 			clock0	: IN STD_LOGIC ;
+			clocken1	: IN STD_LOGIC ;
 			wren_a	: IN STD_LOGIC ;
-			address_b	: IN STD_LOGIC_VECTOR (10 DOWNTO 0);
+			address_b	: IN STD_LOGIC_VECTOR (11 DOWNTO 0);
 			clock1	: IN STD_LOGIC ;
-			data_b	: IN STD_LOGIC_VECTOR (15 DOWNTO 0);
+			clocken0	: IN STD_LOGIC ;
+			data_b	: IN STD_LOGIC_VECTOR (7 DOWNTO 0);
 			q_a	: OUT STD_LOGIC_VECTOR (7 DOWNTO 0);
 			wren_b	: IN STD_LOGIC ;
 			address_a	: IN STD_LOGIC_VECTOR (11 DOWNTO 0);
 			data_a	: IN STD_LOGIC_VECTOR (7 DOWNTO 0);
-			q_b	: OUT STD_LOGIC_VECTOR (15 DOWNTO 0)
+			q_b	: OUT STD_LOGIC_VECTOR (7 DOWNTO 0)
 	);
 	END COMPONENT;
 
 BEGIN
 	q_a    <= sub_wire0(7 DOWNTO 0);
-	q_b    <= sub_wire1(15 DOWNTO 0);
+	q_b    <= sub_wire1(7 DOWNTO 0);
 
 	altsyncram_component : altsyncram
 	GENERIC MAP (
 		address_reg_b => "CLOCK1",
-		clock_enable_input_a => "BYPASS",
-		clock_enable_input_b => "BYPASS",
+		clock_enable_input_a => "NORMAL",
+		clock_enable_input_b => "NORMAL",
 		clock_enable_output_a => "BYPASS",
 		clock_enable_output_b => "BYPASS",
 		indata_reg_b => "CLOCK1",
-		init_file => "DIE-LEG2.hex",
+		init_file => "./charset.hex",
 		init_file_layout => "PORT_A",
 		intended_device_family => "Cyclone II",
 		lpm_type => "altsyncram",
 		numwords_a => 4096,
-		numwords_b => 2048,
+		numwords_b => 4096,
 		operation_mode => "BIDIR_DUAL_PORT",
 		outdata_aclr_a => "NONE",
 		outdata_aclr_b => "NONE",
@@ -130,18 +134,20 @@ BEGIN
 		outdata_reg_b => "UNREGISTERED",
 		power_up_uninitialized => "FALSE",
 		widthad_a => 12,
-		widthad_b => 11,
+		widthad_b => 12,
 		width_a => 8,
-		width_b => 16,
+		width_b => 8,
 		width_byteena_a => 1,
 		width_byteena_b => 1,
 		wrcontrol_wraddress_reg_b => "CLOCK1"
 	)
 	PORT MAP (
 		clock0 => clock_a,
+		clocken1 => enable_b,
 		wren_a => wren_a,
 		address_b => address_b,
 		clock1 => clock_b,
+		clocken0 => enable_a,
 		data_b => data_b,
 		wren_b => wren_b,
 		address_a => address_a,
@@ -165,10 +171,10 @@ END SYN;
 -- Retrieval info: PRIVATE: BYTE_ENABLE_B NUMERIC "0"
 -- Retrieval info: PRIVATE: BYTE_SIZE NUMERIC "8"
 -- Retrieval info: PRIVATE: BlankMemory NUMERIC "0"
--- Retrieval info: PRIVATE: CLOCK_ENABLE_INPUT_A NUMERIC "0"
--- Retrieval info: PRIVATE: CLOCK_ENABLE_INPUT_B NUMERIC "0"
--- Retrieval info: PRIVATE: CLOCK_ENABLE_OUTPUT_A NUMERIC "0"
--- Retrieval info: PRIVATE: CLOCK_ENABLE_OUTPUT_B NUMERIC "0"
+-- Retrieval info: PRIVATE: CLOCK_ENABLE_INPUT_A NUMERIC "1"
+-- Retrieval info: PRIVATE: CLOCK_ENABLE_INPUT_B NUMERIC "1"
+-- Retrieval info: PRIVATE: CLOCK_ENABLE_OUTPUT_A NUMERIC "1"
+-- Retrieval info: PRIVATE: CLOCK_ENABLE_OUTPUT_B NUMERIC "1"
 -- Retrieval info: PRIVATE: CLRdata NUMERIC "0"
 -- Retrieval info: PRIVATE: CLRq NUMERIC "0"
 -- Retrieval info: PRIVATE: CLRrdaddress NUMERIC "0"
@@ -189,7 +195,7 @@ END SYN;
 -- Retrieval info: PRIVATE: MAXIMUM_DEPTH NUMERIC "0"
 -- Retrieval info: PRIVATE: MEMSIZE NUMERIC "32768"
 -- Retrieval info: PRIVATE: MEM_IN_BITS NUMERIC "0"
--- Retrieval info: PRIVATE: MIFfilename STRING "DIE-LEG2.hex"
+-- Retrieval info: PRIVATE: MIFfilename STRING "../charset.hex"
 -- Retrieval info: PRIVATE: OPERATION_MODE NUMERIC "3"
 -- Retrieval info: PRIVATE: OUTDATA_ACLR_B NUMERIC "0"
 -- Retrieval info: PRIVATE: OUTDATA_REG_B NUMERIC "0"
@@ -208,27 +214,27 @@ END SYN;
 -- Retrieval info: PRIVATE: UseDPRAM NUMERIC "1"
 -- Retrieval info: PRIVATE: VarWidth NUMERIC "1"
 -- Retrieval info: PRIVATE: WIDTH_READ_A NUMERIC "8"
--- Retrieval info: PRIVATE: WIDTH_READ_B NUMERIC "16"
+-- Retrieval info: PRIVATE: WIDTH_READ_B NUMERIC "8"
 -- Retrieval info: PRIVATE: WIDTH_WRITE_A NUMERIC "8"
--- Retrieval info: PRIVATE: WIDTH_WRITE_B NUMERIC "16"
+-- Retrieval info: PRIVATE: WIDTH_WRITE_B NUMERIC "8"
 -- Retrieval info: PRIVATE: WRADDR_ACLR_B NUMERIC "0"
 -- Retrieval info: PRIVATE: WRADDR_REG_B NUMERIC "1"
 -- Retrieval info: PRIVATE: WRCTRL_ACLR_B NUMERIC "0"
--- Retrieval info: PRIVATE: enable NUMERIC "0"
+-- Retrieval info: PRIVATE: enable NUMERIC "1"
 -- Retrieval info: PRIVATE: rden NUMERIC "0"
 -- Retrieval info: LIBRARY: altera_mf altera_mf.altera_mf_components.all
 -- Retrieval info: CONSTANT: ADDRESS_REG_B STRING "CLOCK1"
--- Retrieval info: CONSTANT: CLOCK_ENABLE_INPUT_A STRING "BYPASS"
--- Retrieval info: CONSTANT: CLOCK_ENABLE_INPUT_B STRING "BYPASS"
+-- Retrieval info: CONSTANT: CLOCK_ENABLE_INPUT_A STRING "NORMAL"
+-- Retrieval info: CONSTANT: CLOCK_ENABLE_INPUT_B STRING "NORMAL"
 -- Retrieval info: CONSTANT: CLOCK_ENABLE_OUTPUT_A STRING "BYPASS"
 -- Retrieval info: CONSTANT: CLOCK_ENABLE_OUTPUT_B STRING "BYPASS"
 -- Retrieval info: CONSTANT: INDATA_REG_B STRING "CLOCK1"
--- Retrieval info: CONSTANT: INIT_FILE STRING "DIE-LEG2.hex"
+-- Retrieval info: CONSTANT: INIT_FILE STRING "../charset.hex"
 -- Retrieval info: CONSTANT: INIT_FILE_LAYOUT STRING "PORT_A"
 -- Retrieval info: CONSTANT: INTENDED_DEVICE_FAMILY STRING "Cyclone II"
 -- Retrieval info: CONSTANT: LPM_TYPE STRING "altsyncram"
 -- Retrieval info: CONSTANT: NUMWORDS_A NUMERIC "4096"
--- Retrieval info: CONSTANT: NUMWORDS_B NUMERIC "2048"
+-- Retrieval info: CONSTANT: NUMWORDS_B NUMERIC "4096"
 -- Retrieval info: CONSTANT: OPERATION_MODE STRING "BIDIR_DUAL_PORT"
 -- Retrieval info: CONSTANT: OUTDATA_ACLR_A STRING "NONE"
 -- Retrieval info: CONSTANT: OUTDATA_ACLR_B STRING "NONE"
@@ -236,32 +242,36 @@ END SYN;
 -- Retrieval info: CONSTANT: OUTDATA_REG_B STRING "UNREGISTERED"
 -- Retrieval info: CONSTANT: POWER_UP_UNINITIALIZED STRING "FALSE"
 -- Retrieval info: CONSTANT: WIDTHAD_A NUMERIC "12"
--- Retrieval info: CONSTANT: WIDTHAD_B NUMERIC "11"
+-- Retrieval info: CONSTANT: WIDTHAD_B NUMERIC "12"
 -- Retrieval info: CONSTANT: WIDTH_A NUMERIC "8"
--- Retrieval info: CONSTANT: WIDTH_B NUMERIC "16"
+-- Retrieval info: CONSTANT: WIDTH_B NUMERIC "8"
 -- Retrieval info: CONSTANT: WIDTH_BYTEENA_A NUMERIC "1"
 -- Retrieval info: CONSTANT: WIDTH_BYTEENA_B NUMERIC "1"
 -- Retrieval info: CONSTANT: WRCONTROL_WRADDRESS_REG_B STRING "CLOCK1"
 -- Retrieval info: USED_PORT: address_a 0 0 12 0 INPUT NODEFVAL "address_a[11..0]"
--- Retrieval info: USED_PORT: address_b 0 0 11 0 INPUT NODEFVAL "address_b[10..0]"
+-- Retrieval info: USED_PORT: address_b 0 0 12 0 INPUT NODEFVAL "address_b[11..0]"
 -- Retrieval info: USED_PORT: clock_a 0 0 0 0 INPUT VCC "clock_a"
 -- Retrieval info: USED_PORT: clock_b 0 0 0 0 INPUT NODEFVAL "clock_b"
 -- Retrieval info: USED_PORT: data_a 0 0 8 0 INPUT NODEFVAL "data_a[7..0]"
--- Retrieval info: USED_PORT: data_b 0 0 16 0 INPUT NODEFVAL "data_b[15..0]"
+-- Retrieval info: USED_PORT: data_b 0 0 8 0 INPUT NODEFVAL "data_b[7..0]"
+-- Retrieval info: USED_PORT: enable_a 0 0 0 0 INPUT VCC "enable_a"
+-- Retrieval info: USED_PORT: enable_b 0 0 0 0 INPUT VCC "enable_b"
 -- Retrieval info: USED_PORT: q_a 0 0 8 0 OUTPUT NODEFVAL "q_a[7..0]"
--- Retrieval info: USED_PORT: q_b 0 0 16 0 OUTPUT NODEFVAL "q_b[15..0]"
+-- Retrieval info: USED_PORT: q_b 0 0 8 0 OUTPUT NODEFVAL "q_b[7..0]"
 -- Retrieval info: USED_PORT: wren_a 0 0 0 0 INPUT GND "wren_a"
 -- Retrieval info: USED_PORT: wren_b 0 0 0 0 INPUT GND "wren_b"
 -- Retrieval info: CONNECT: @address_a 0 0 12 0 address_a 0 0 12 0
--- Retrieval info: CONNECT: @address_b 0 0 11 0 address_b 0 0 11 0
+-- Retrieval info: CONNECT: @address_b 0 0 12 0 address_b 0 0 12 0
 -- Retrieval info: CONNECT: @clock0 0 0 0 0 clock_a 0 0 0 0
 -- Retrieval info: CONNECT: @clock1 0 0 0 0 clock_b 0 0 0 0
+-- Retrieval info: CONNECT: @clocken0 0 0 0 0 enable_a 0 0 0 0
+-- Retrieval info: CONNECT: @clocken1 0 0 0 0 enable_b 0 0 0 0
 -- Retrieval info: CONNECT: @data_a 0 0 8 0 data_a 0 0 8 0
--- Retrieval info: CONNECT: @data_b 0 0 16 0 data_b 0 0 16 0
+-- Retrieval info: CONNECT: @data_b 0 0 8 0 data_b 0 0 8 0
 -- Retrieval info: CONNECT: @wren_a 0 0 0 0 wren_a 0 0 0 0
 -- Retrieval info: CONNECT: @wren_b 0 0 0 0 wren_b 0 0 0 0
 -- Retrieval info: CONNECT: q_a 0 0 8 0 @q_a 0 0 8 0
--- Retrieval info: CONNECT: q_b 0 0 16 0 @q_b 0 0 16 0
+-- Retrieval info: CONNECT: q_b 0 0 8 0 @q_b 0 0 8 0
 -- Retrieval info: GEN_FILE: TYPE_NORMAL displayram.vhd TRUE
 -- Retrieval info: GEN_FILE: TYPE_NORMAL displayram.inc FALSE
 -- Retrieval info: GEN_FILE: TYPE_NORMAL displayram.cmp TRUE

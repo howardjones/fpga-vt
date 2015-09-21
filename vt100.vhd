@@ -4,6 +4,8 @@ use ieee.std_logic_1164.all;
 -- use  IEEE.STD_LOGIC_UNSIGNED.all;
 use IEEE.NUMERIC_STD.all;
 
+
+
 entity vt100 is
      port(
 		Reset_n		: in std_logic;
@@ -53,8 +55,8 @@ architecture struct of vt100 is
 	signal frame_start : std_logic;
 	signal row_start : std_logic;
 	
-	signal dispram_addr_b : std_logic_vector(10 downto 0) := "00000000000";
-	signal dispram_output_b : std_logic_vector(15 downto 0);
+	signal dispram_addr_b : std_logic_vector(11 downto 0) := "000000000000";
+	signal dispram_output_b : std_logic_vector(7 downto 0);
 	
 	signal serialClkCount			: unsigned(15 downto 0);
 	signal cpuClkCount				: unsigned(7 downto 0); 
@@ -82,12 +84,14 @@ architecture struct of vt100 is
 	signal CPU_D		: std_logic_vector(7 downto 0);
 
 	signal DISPRAM_D		: std_logic_vector(7 downto 0);
+	signal BLINKEN_D		: std_logic_vector(7 downto 0);
 
 	
 	signal Mirror		: std_logic;
 
 	signal IOWR_n		: std_logic;
 	signal RAMCS_n		: std_logic;
+	signal ROMCS_n		: std_logic;
 	signal DISPRAMCS_n : std_logic;
 
 	signal UART0CS_n	: std_logic;
@@ -96,6 +100,8 @@ architecture struct of vt100 is
 
 	signal BaudOut0		: std_logic;
 	signal BaudOut1		: std_logic;
+	
+	signal blinkenlights : std_logic_vector(5 downto 0);
 	
 begin
 
@@ -111,7 +117,7 @@ begin
 		if Reset_n = '0' then
 			Reset_s <= '0';
 			--Mirror <= '0';
-		elsif Clk'event and Clk = '1' then
+		elsif cpuClock'event and cpuClock = '1' then
 			Reset_s <= '1';
 			--if IORQ_n = '0' and A(7 downto 4) = "1111" then
 			--	Mirror <= D(0);
@@ -122,13 +128,13 @@ begin
 	process (Clk)
 	begin
 		if(rising_edge(Clk)) then
-			if cpuClkCount < 200 then
+			if cpuClkCount < 20 then
 				cpuClkCount <= cpuClkCount + 1;
 			else
 				cpuClkCount <= (others => '0');
 			end if;
 			
-			if cpuClkCount < 100 then
+			if cpuClkCount < 10 then
 				cpuClock <= '1';			
 			else
 				cpuClock <= '0';
@@ -139,10 +145,14 @@ begin
 
 	-- Memory decoding
 	IOWR_n <= WR_n or IORQ_n;
-	-- RAMCS_n <= (not Mirror and not A(15)) or MREQ_n;
-	RAMCS_n <= (not Mirror and not A(15)) or MREQ_n;
-	-- DISPRAMCS_n <= MREQ_n and 
-
+	
+	-- 1K RAM at 8000-83FF
+	RAMCS_n <= '0' when A(15 downto 10) = "100000" and MREQ_n='0' else '1';
+	-- 4K display ram at F000-FFFF
+	DISPRAMCS_n <= '0' when A(15 downto 12)="1111" and MREQ_n='0' else '1'; 
+	-- 4K ROM at anywhere else (but mainly 0000-0fff)
+	ROMCS_n <= '0' when RAMCS_n='1' and DISPRAMCS_n='1' and MREQ_n='0' else '1';
+	
 	-- I/O Decoding
 	BLINKCS_n <= '0' when IORQ_n = '0' and A(7 downto 0) = "11111111" else '1';
 	UART0CS_n <= '0' when IORQ_n = '0' and A(7 downto 3) = "00000" else '1';	
@@ -151,9 +161,10 @@ begin
 	-- data bus selection
 	CPU_D <=
 		SRAM_D when RAMCS_n = '0' else
-		SRAM_D when RAMCS_n = '0' else
+		DISPRAM_D when DISPRAMCS_n = '0' else
 		UART0_D when UART0CS_n = '0' else
 		UART1_D when UART1CS_n = '0' else
+		BLINKEN_D when BLINKCS_n = '0' else
 		ROM_D;
 	
 	
@@ -190,17 +201,18 @@ begin
 		port map (
 			-- clock_a => cpuClock,
 			-- address_a => A(11 downto 0),
-			clock_a => pixelClk,
-			address_a => "000000000000",
+			clock_a => cpuClock,
+			address_a => A(11 downto 0),
 			q_a => DISPRAM_D,
 			data_a => D,
 			enable_a => not DISPRAMCS_n,
-			wren_a => not WR_n,
+			wren_a => not (WR_n or DISPRAMCS_n),
 			
+			enable_b => '1',
 			clock_b => pixelClk,
 			address_b => dispram_addr_b,
 			q_b => dispram_output_b,
-			data_b => "0000000000000000"
+			data_b => "00000000"
 		);
 		
 		cpu0 : entity work.T80s
@@ -263,16 +275,28 @@ begin
 					clock => cpuClock,
 					data => D,
 					q => SRAM_D,
-					wren => not WR_n
+					wren => not (WR_n or RAMCS_n)
 				);
+	
+	-- Allow Z80 to update LED states - only 6 of the 8 bits are wired to LEDs though
+	process(cpuClkCount, reset_n)
+	begin
+		if (reset_n ='0') then
+			BLINKEN_D <= "00000000";
+		elsif (rising_edge(cpuClock)) then
+			if BLINKCS_n = '0' and WR_n = '0' then
+				BLINKEN_D <= D;
+			end if;
+		end if;
+	end process;
 	
 	junkBuzzer <= '0';
 
-	blinkenlight0 <= not A(11);	
-	blinkenlight1 <= not A(10);
-	blinkenlight2 <= not A(9);
-	blinkenlight3 <= HalT_n;
-	blinkenlight4 <= '1';
-	blinkenlight5 <= not frame_start;
+	blinkenlight0 <= not BLINKEN_D(0);	
+	blinkenlight1 <= not BLINKEN_D(1);
+	blinkenlight2 <= not BLINKEN_D(2);
+	blinkenlight3 <= not BLINKEN_D(3);
+	blinkenlight4 <= not BLINKEN_D(4);
+	blinkenlight5 <= not BLINKEN_D(5);
 		
 end; 

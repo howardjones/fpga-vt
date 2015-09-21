@@ -25,6 +25,9 @@ ARCHITECTURE testbench_arch OF vga_gfx_testbench IS
 	SIGNAL videoR		:  std_logic_vector(1 downto 0);
 	SIGNAL videoG		:  std_logic_vector(1 downto 0);
 	SIGNAL videoB		:  std_logic_vector(1 downto 0);	
+	
+	signal dispram_addr_b : std_logic_vector(10 downto 0) := "00000000000";
+	signal dispram_output_b : std_logic_vector(15 downto 0);
   
   COMPONENT vga_controller  
     PORT ( 
@@ -61,9 +64,24 @@ ARCHITECTURE testbench_arch OF vga_gfx_testbench IS
 			disp_enable => enable,
 			row_start => row_start,
 			frame_start => frame_start,
+			display_mem_addr => dispram_addr_b,
+			display_mem_data => dispram_output_b,
 			videoR => videoR,
 			videoG => videoG,
 			videoB => videoB
+		);
+		
+	displaymem: entity work.displayram
+		port map (
+			clock_a => clk,
+			address_a => "000000000000",
+			--q_a => "00000000",
+			data_a => "00000000",
+			
+			clock_b => clk,
+			address_b => dispram_addr_b,
+			q_b => dispram_output_b,
+			data_b => "0000000000000000"
 		);
 		
 -- "Clock Pattern" : dutyCycle = 50

@@ -131,7 +131,7 @@ entity attr_selector is
 		fg : in std_logic_vector(5 downto 0);
       bg : in std_logic_vector(5 downto 0);
 		flashing : in std_logic;
-		flash : in std_logic;
+		flashclk : in std_logic;
 		clock : in std_logic
 		);
 end attr_selector;
@@ -141,6 +141,7 @@ architecture Behavioral of attr_selector is
 	signal fg_latch : std_logic_vector(5 downto 0);
 	signal bg_latch : std_logic_vector(5 downto 0);
 	signal result : std_logic_vector(5 downto 0);
+	signal flash_latch : std_logic;
 begin
 
 	process (clock, input, load)
@@ -149,12 +150,13 @@ begin
 			if(load = '1') then
 				fg_latch <= fg;
 				bg_latch <= bg;
+				flash_latch <= flashing;
 			end if;
 			
 			if (disp_enable = '0') then
 					result <= "000000";
 			else
-				if (input='0' or (flash and flashing) = '1') then
+				if (input='0' or (flashclk and flash_latch) = '1') then
 					result <= bg_latch;
 				else
 					result <= fg_latch;

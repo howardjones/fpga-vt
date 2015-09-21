@@ -63,7 +63,7 @@ set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST ON -section_id eda_simulation
 set_global_assignment -name EDA_TEST_BENCH_ENABLE_STATUS TEST_BENCH_MODE -section_id eda_simulation
-set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH vga_gfx_testbench -section_id eda_simulation
+set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH testbench -section_id eda_simulation
 set_global_assignment -name EDA_TEST_BENCH_NAME testbench -section_id eda_simulation
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME testbench -section_id testbench
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME testbench -section_id testbench
@@ -75,9 +75,6 @@ set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to n_reset
 set_global_assignment -name EDA_TEST_BENCH_NAME vga_gfx_testbench -section_id eda_simulation
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME vga_gfx_testbench -section_id vga_gfx_testbench
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME vga_gfx_testbench -section_id vga_gfx_testbench
-set_global_assignment -name EDA_TEST_BENCH_FILE simulation/modelsim/testbench.vhd -section_id testbench
-set_global_assignment -name EDA_TEST_BENCH_FILE simulation/modelsim/vga_testbench.vhd -section_id vga_testbench
-set_global_assignment -name EDA_TEST_BENCH_FILE simulation/modelsim/vga_gfx_testbench.vhd -section_id vga_gfx_testbench
 set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008
 set_global_assignment -name VHDL_SHOW_LMF_MAPPING_MESSAGES OFF
 set_location_assignment PIN_33 -to videoR[0]
@@ -93,6 +90,21 @@ set_global_assignment -name ENABLE_SIGNALTAP OFF
 set_global_assignment -name FLOW_ENABLE_RTL_VIEWER ON
 set_location_assignment PIN_30 -to junkBuzzer
 set_global_assignment -name FLOW_ENABLE_IO_ASSIGNMENT_ANALYSIS ON
+set_location_assignment PIN_113 -to blinkenlight0
+set_location_assignment PIN_114 -to blinkenlight1
+set_location_assignment PIN_115 -to blinkenlight2
+set_location_assignment PIN_116 -to blinkenlight3
+set_location_assignment PIN_117 -to blinkenlight4
+set_location_assignment PIN_118 -to blinkenlight5
+set_location_assignment PIN_147 -to NMI_n -comment "button 4"
+set_location_assignment PIN_146 -to Reset_n -comment "button 3"
+set_global_assignment -name EDA_TEST_BENCH_FILE simulation/modelsim/testbench.vhd -section_id testbench
+set_global_assignment -name EDA_TEST_BENCH_FILE simulation/modelsim/vga_testbench.vhd -section_id vga_testbench
+set_global_assignment -name EDA_TEST_BENCH_FILE simulation/modelsim/vga_gfx_testbench.vhd -section_id vga_gfx_testbench
+set_global_assignment -name VHDL_FILE sram.vhd
+set_global_assignment -name VHDL_FILE font_rom.vhd
+set_global_assignment -name VHDL_FILE displayram.vhd
+set_global_assignment -name VHDL_FILE bootrom.vhd
 set_global_assignment -name VHDL_FILE components/T16450.vhd
 set_global_assignment -name VHDL_FILE components/T80s.vhd
 set_global_assignment -name VHDL_FILE components/T80a.vhd
@@ -114,12 +126,5 @@ set_global_assignment -name VHDL_FILE "vga-small.vhd"
 set_global_assignment -name QIP_FILE displayram.qip
 set_global_assignment -name QIP_FILE bootrom.qip
 set_global_assignment -name QIP_FILE sram.qip
-set_location_assignment PIN_113 -to blinkenlight0
-set_location_assignment PIN_114 -to blinkenlight1
-set_location_assignment PIN_115 -to blinkenlight2
-set_location_assignment PIN_116 -to blinkenlight3
-set_location_assignment PIN_117 -to blinkenlight4
-set_location_assignment PIN_118 -to blinkenlight5
-set_location_assignment PIN_147 -to NMI_n -comment "button 4"
-set_location_assignment PIN_146 -to Reset_n -comment "button 3"
+set_parameter -name CYCLONEII_SAFE_WRITE VERIFIED_SAFE
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
