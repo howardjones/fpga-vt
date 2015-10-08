@@ -98,8 +98,8 @@ entity attr_selector is
     bg          : in  std_logic_vector(5 downto 0);
     flashing    : in  std_logic;
     flashclk    : in  std_logic;
-    clock       : in  std_logic;
-    blanking : in std_logic
+    clock       : in  std_logic
+--    blanking    : in  std_logic
     );
 end attr_selector;
 

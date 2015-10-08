@@ -84,7 +84,7 @@ begin
       );
 
   pixcounter_inst : entity work.mod_m_counter
-    generic map(N => 4, M => 9)
+    generic map(N => 4, M => 8)
     port map(
       clock => pixelClk,
       clear => pix_clear,
