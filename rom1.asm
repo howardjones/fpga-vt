@@ -28,8 +28,27 @@ fail:
 	;  just to test that the RAM is working!
 	push af
 start:
-	ld a,65
 
+startmessage:
+	ld hl,SCREEN
+	ld de,message
+	ld a,(de)
+	ld b,a
+	inc de
+msgloop:
+	ld a,(de)
+	ld (hl),a
+	inc de
+	inc hl
+	ld a,@11001111 ; white on red flashing
+	ld (hl),a
+	inc hl
+	djnz msgloop
+	halt
+
+; this is the high-speed character spew. We don't need that now.
+
+	ld a,65
 startscreen:
 	ld hl,SCREEN
 	
@@ -57,3 +76,8 @@ lineloop:
 	pop af
 	
 	jp startscreen
+	
+message:
+DEFB 50
+DEFM "This is the FPGA vt100 emulator. Nothing works yet"
+

@@ -99,7 +99,7 @@ entity attr_selector is
     flashing    : in  std_logic;
     flashclk    : in  std_logic;
     clock       : in  std_logic;
-    blanking : in std_logic
+    blanking    : in  std_logic
     );
 end attr_selector;
 
