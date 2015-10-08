@@ -269,8 +269,8 @@ begin
 
   sram0 : entity work.sram
     port map (
-                                        -- missing RAMCS_n
-                                        -- clken => not RAMCS_n,
+      -- missing RAMCS_n
+      -- clken => not RAMCS_n,
       address => A(9 downto 0),
       clock   => cpuClock,
       data    => D,

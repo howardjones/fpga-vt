@@ -90,8 +90,8 @@ set_global_assignment -name ENABLE_SIGNALTAP OFF
 set_global_assignment -name FLOW_ENABLE_RTL_VIEWER ON
 set_location_assignment PIN_30 -to junkBuzzer
 set_global_assignment -name FLOW_ENABLE_IO_ASSIGNMENT_ANALYSIS ON
-set_location_assignment PIN_147 -to NMI_n -comment "button 4"
-set_location_assignment PIN_146 -to Reset_n -comment "button 3"
+set_location_assignment PIN_147 -to NMI_n
+set_location_assignment PIN_146 -to Reset_n
 set_global_assignment -name EDA_TEST_BENCH_FILE simulation/modelsim/testbench.vhd -section_id testbench
 set_global_assignment -name EDA_TEST_BENCH_FILE simulation/modelsim/vga_testbench.vhd -section_id vga_testbench
 set_global_assignment -name EDA_TEST_BENCH_FILE simulation/modelsim/vga_gfx_testbench.vhd -section_id vga_gfx_testbench
