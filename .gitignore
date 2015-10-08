@@ -11,6 +11,7 @@ roms/
 greybox_tmp/
 .qsys_edit/
 simulation/
+*.chg
 
 
 #################

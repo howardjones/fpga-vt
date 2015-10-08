@@ -44,6 +44,38 @@ msgloop:
 	ld (hl),a
 	inc hl
 	djnz msgloop
+	
+	; The first byte on the start of the 7th row (160*7 + 1)
+	ld de, 960
+	
+	ld a,0
+	ld c, '*'
+	ld hl, SCREEN
+	add hl, de
+	
+	ld b,8
+row1:
+	push bc
+	ld b,16
+col1:
+	ld (hl),c
+	inc hl
+	ld (hl),a
+	inc hl
+	ld (hl),c
+	inc hl
+	ld (hl),a
+	inc hl
+	inc a
+	djnz col1
+	
+	ld de, 96
+	add hl, de
+	
+	pop bc
+	djnz row1
+	
+	
 	halt
 
 ; this is the high-speed character spew. We don't need that now.

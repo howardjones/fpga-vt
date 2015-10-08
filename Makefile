@@ -23,6 +23,16 @@ SRCS = vt100.vhd vga-controller.vhd vga_textmode.vhd vga-small.vhd \
 	components/T16450.vhd \
 	components/T80s.vhd components/T80_Pack.vhd components/T80.vhd components/T80_ALU.vhd components/T80_Reg.vhd components/T80_MCode.vhd
 
+OTHER_INPUT = rom1.hex charset.hex vga-rom.hex
+
+
+%.bin: %.asm
+	z80asm -v -a $<
+	
+%.hex: %.bin
+	trunc $< 4096
+	bin2hex $< $@ 
+
 SOF = output_files/$(PROJECT).sof
 POF = output_files/$(PROJECT).pof
 	
@@ -34,7 +44,9 @@ POF = output_files/$(PROJECT).pof
 # program: program your device with the compiled design
 ###################################################################
 
-all: smart.log $(PROJECT).asm.rpt $(PROJECT).sta.rpt 
+all: smart.log $(PROJECT).asm.rpt $(PROJECT).sta.rpt $(SOF)
+
+rom1.bin: rom1.asm
 
 clean:
 	rm -rf *.rpt *.chg smart.log *.htm *.eqn *.pin *.sof *.pof db incremental_db
@@ -99,8 +111,12 @@ asm.chg:
 # Programming the device
 ###################################################################
 
-program: $(SOF)
+refresh_memory: $(SOF) $(OTHER_INPUT)
+	quartus_cdb $(PROJECT) -c $(PROJECT) --update_mif
+	quartus_asm $(PROJECT) 
+
+program: $(SOF) $(OTHER_INPUT)
 	quartus_pgm --no_banner --mode=jtag -o "P;$(SOF)"
 
-programflash: $(POF)
+programflash: $(POF) $(OTHER_INPUT)
 	quartus_pgm --no_banner --mode=as -o "P;$(POF)"
