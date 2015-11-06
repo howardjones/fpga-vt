@@ -27,7 +27,8 @@ OTHER_INPUT = rom1.hex charset.hex vga-rom.hex
 
 
 %.bin: %.asm
-	z80asm -v -a $<
+	# z80asm -v -l -a $<
+	pasmo -1 -v $< $@.bin
 	
 %.hex: %.bin
 	trunc $< 4096

@@ -18,9 +18,9 @@ entity vga_textmode is
     display_mem_addr : out std_logic_vector(11 downto 0);
     display_mem_data : in  std_logic_vector(7 downto 0);
 
-    videoR : out std_logic_vector(1 downto 0);
-    videoG : out std_logic_vector(1 downto 0);
-    videoB : out std_logic_vector(1 downto 0)
+    videoR : out std_logic_vector(3 downto 0);
+    videoG : out std_logic_vector(3 downto 0);
+    videoB : out std_logic_vector(3 downto 0)
     );
 end vga_textmode;
 

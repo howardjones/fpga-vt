@@ -1,12 +1,45 @@
 ; z80asm -v -a rom1.asm
 
-	org 0
-	
-	DEFC SCREEN = 61440
-	DEFC STACKTOP = 33790
-	DEFC MEMSTART = 32768	
+	SCREEN EQU 61440
+	STACKTOP EQU 33790
+	MEMSTART EQU 32768	
 
+	ORG 00h
+START:
 	ld sp,STACKTOP
+	JP MAIN
+
+	ORG 08h
+
+	ORG 10h
+	
+	ORG 20h
+	
+	ORG 28h
+	
+	ORG 30h
+	
+	ORG 38h
+; interrupt handler
+	ei
+	reti
+
+	ORG 66h
+; NMI handler
+	exx
+	ex af,af'
+	
+	ld a, 'X'
+	ld hl, SCREEN
+	ld (hl), a
+	
+	ex af,af'
+	exx
+	retn
+
+; CP/M style - real stuff starts here
+	ORG 100h
+MAIN:
 	
 	ld  a,01h  ; first led
 	out (0ffh),a
@@ -27,7 +60,6 @@ fail:
 	ld a, 22
 	;  just to test that the RAM is working!
 	push af
-start:
 
 startmessage:
 	ld hl,SCREEN
@@ -40,7 +72,7 @@ msgloop:
 	ld (hl),a
 	inc de
 	inc hl
-	ld a,@11001111 ; white on red flashing
+	ld a,%11001111 ; white on red flashing
 	ld (hl),a
 	inc hl
 	djnz msgloop

@@ -13,13 +13,9 @@ entity vt100 is
 
     junkBuzzer : out std_logic;
 
-    --  rxd1                    : in std_logic;
-    --  txd1                    : out std_logic;
-    --  rts1                    : out std_logic;
-
-    videoR : out std_logic_vector(1 downto 0);
-    videoG : out std_logic_vector(1 downto 0);
-    videoB : out std_logic_vector(1 downto 0);
+    videoR : out std_logic_vector(3 downto 0);
+    videoG : out std_logic_vector(3 downto 0);
+    videoB : out std_logic_vector(3 downto 0);
     hSync  : out std_logic;
     vSync  : out std_logic;
 
@@ -57,6 +53,8 @@ architecture struct of vt100 is
   signal cpuClkCount    : unsigned(7 downto 0);
   signal cpuClock       : std_logic;
   signal serialClock    : std_logic;
+  signal kbdClock       : std_logic;
+  signal kbdClkCount    : unsigned(11 downto 0);
 
   signal M1_n    : std_logic;
   signal MREQ_n  : std_logic;
@@ -96,8 +94,9 @@ architecture struct of vt100 is
   signal BaudOut0 : std_logic;
   signal BaudOut1 : std_logic;
 
---      signal blinkenlights : std_logic_vector(5 downto 0);
-
+  signal PS2NewDataFlag : std_logic;
+  signal PS2Character : std_logic_vector(7 downto 0);
+  
 begin
 
   pixelClk <= clk;
@@ -136,12 +135,21 @@ begin
         cpuClock <= '0';
       end if;
 
-      serialClkCount <= serialClkCount + 201;
-
+		-- 1.8432 MHz clock (ish) from 50 MHz
+		if (serialClkCount < 271) then
+			serialClkCount <= serialClkCount + 1;
+		else
+			serialClkCount <= (others => '0');
+		end if;
+		
+		if (serialClkCount < 135) then
+			serialClock <= '1';
+		else
+			serialClock <= '0';
+		end if;
+				
     end if;
   end process;
-
-  serialClock <= serialClkCount(15);
 
   -- Memory decoding
   IOWR_n <= WR_n or IORQ_n;
@@ -153,7 +161,7 @@ begin
   -- 4K ROM at anywhere else (but mainly 0000-0fff)
   ROMCS_n     <= '0' when RAMCS_n = '1' and DISPRAMCS_n = '1' and MREQ_n = '0' else '1';
 
-  -- I/O Decoding
+  -- I/O Decoding - port 00-07 and 08-15 are UARTS, port 255 is the blinkenlights
   BLINKCS_n <= '0' when IORQ_n = '0' and A(7 downto 0) = "11111111" else '1';
   UART0CS_n <= '0' when IORQ_n = '0' and A(7 downto 3) = "00000"    else '1';
   UART1CS_n <= '0' when IORQ_n = '0' and A(7 downto 3) = "00001"    else '1';
@@ -167,6 +175,14 @@ begin
     BLINKEN_D when BLINKCS_n = '0' else
     ROM_D;
 
+  ps2kbd: entity work.ps2_keyboard
+    port map(
+		clk => clk,
+		ps2_clk => PS2Clk,
+		ps2_data => PS2Data,
+		ps2_code_new => PS2NewDataFlag,
+		ps2_code => PS2Character
+	 );
 
   vgactrl1 : entity work.vga_controller
     port map(
@@ -289,6 +305,7 @@ begin
       end if;
     end if;
   end process;
+
 
   junkBuzzer <= '1';
 

@@ -89,9 +89,9 @@ use IEEE.NUMERIC_STD.all;
 entity attr_selector is
   port (
     input       : in  std_logic;
-    outR        : out std_logic_vector(1 downto 0);
-    outG        : out std_logic_vector(1 downto 0);
-    outB        : out std_logic_vector(1 downto 0);
+    outR        : out std_logic_vector(3 downto 0);
+    outG        : out std_logic_vector(3 downto 0);
+    outB        : out std_logic_vector(3 downto 0);
     disp_enable : in  std_logic;
     load        : in  std_logic;
     fg          : in  std_logic_vector(5 downto 0);
@@ -134,8 +134,8 @@ begin
 
   end process;
 
-  outR <= result(5 downto 4);
-  outG <= result(3 downto 2);
-  outB <= result(1 downto 0);
+  outR <= result(5 downto 4) & "00";
+  outG <= result(3 downto 2) & "00";
+  outB <= result(1 downto 0) & "00";
 
 end Behavioral;
